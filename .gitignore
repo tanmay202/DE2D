@@ -1,0 +1,22 @@
+# Ignore everything in Assets
+Assets/*
+
+# BUT allow scripts folder
+!Assets/Scripts/
+!Assets/Scripts/**
+
+# Allow meta files (important for Unity)
+!Assets/**/*.meta
+
+# Allow core config
+ProjectSettings/
+Packages/
+
+# Ignore generated folders
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
