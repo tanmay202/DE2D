@@ -1,10 +1,10 @@
 // ============================================================================
-// DeviceInstance.cs — Runtime Device Instance
-// Responsibility: Represents a SINGLE physical device in the player's inventory.
-//                 Wraps DeviceData (the type) with runtime state like condition,
-//                 purchase price, age, and hidden defects.
-// Dependencies: DeviceData ScriptableObject
-// Scene Placement: None — this is a plain C# class, not a MonoBehaviour.
+// DeviceInstance.cs — Runtime Device Instance (Phone-Enhanced)
+// Responsibility: A SINGLE physical device in inventory. Wraps DeviceData with
+//                 runtime state: condition, color choice, purchase price, age,
+//                 defects, battery health degradation.
+// Dependencies: DeviceData, PhoneBrandData, PhoneColorVariant
+// Scene Placement: None — plain C# class.
 // ============================================================================
 
 using UnityEngine;
@@ -12,12 +12,8 @@ using UnityEngine;
 namespace DeviceEmpire.Inventory
 {
     /// <summary>
-    /// A single physical device the player owns. Created when buying from suppliers.
-    /// Destroyed (removed from list) when sold to a customer.
-    /// 
-    /// KEY DISTINCTION:
-    /// - DeviceData = "what kind of device is this?" (shared archetype)
-    /// - DeviceInstance = "this specific device I bought on Day 3 for $80" (unique)
+    /// A single physical device the player owns. Phone-enhanced with color
+    /// selection, battery health tracking, and brand-aware value calculations.
     /// </summary>
     [System.Serializable]
     public class DeviceInstance
@@ -35,11 +31,28 @@ namespace DeviceEmpire.Inventory
         [Tooltip("In-game day when this device was acquired")]
         public int DayPurchased;
 
-        [Tooltip("Whether this device has a hidden defect (revealed by tech-savvy customers)")]
+        [Tooltip("Whether this device has a hidden defect")]
         public bool HasHiddenDefect;
 
+        // ── Phone-Specific Runtime State ───────────────────────────────────
+        [Tooltip("Index into DeviceData.AvailableColors for this unit's color")]
+        public int SelectedColorIndex;
+
+        [Tooltip("Battery health percentage (100 = new, degrades over time for used)")]
+        [Range(0f, 100f)]
+        public float BatteryHealth = 100f;
+
+        [Tooltip("Whether the screen has scratches (cosmetic, affects perceived value)")]
+        public bool HasScreenScratches;
+
+        [Tooltip("Whether the device has been repaired/refurbished")]
+        public bool IsRefurbished;
+
+        [Tooltip("IMEI-like unique serial number (flavor, used for future warranty system)")]
+        public string SerialNumber;
+
         // ── Player-Set Price ───────────────────────────────────────────────
-        [Tooltip("The price the player has set for this device (defaults to SRP)")]
+        [Tooltip("The price the player has set for this device")]
         public float PlayerSetPrice;
 
         // ── Unique ID ──────────────────────────────────────────────────────
@@ -49,100 +62,184 @@ namespace DeviceEmpire.Inventory
         // ── Constructor ────────────────────────────────────────────────────
 
         /// <summary>
-        /// Create a new device instance. Called by SupplierPanel when buying stock.
+        /// Create a new device instance with full phone state.
         /// </summary>
-        public DeviceInstance(DeviceData data, DeviceCondition condition, float purchasePrice, int dayPurchased)
+        public DeviceInstance(DeviceData data, DeviceCondition condition, float purchasePrice,
+                              int dayPurchased, int colorIndex = 0)
         {
             Data = data;
             Condition = condition;
             PurchasePrice = purchasePrice;
             DayPurchased = dayPurchased;
-            HasHiddenDefect = false;
+            SelectedColorIndex = colorIndex;
             PlayerSetPrice = data.SuggestedRetailPrice;
             InstanceId = _nextId++;
+            HasHiddenDefect = false;
+            HasScreenScratches = false;
+            IsRefurbished = false;
 
-            // Small chance of hidden defect on non-new items
+            // Generate serial number
+            SerialNumber = GenerateSerial(data);
+
+            // Battery health based on condition
+            BatteryHealth = condition switch
+            {
+                DeviceCondition.New  => 100f,
+                DeviceCondition.Good => Random.Range(85f, 95f),
+                DeviceCondition.Fair => Random.Range(70f, 85f),
+                DeviceCondition.Poor => Random.Range(45f, 70f),
+                _ => 100f
+            };
+
+            // Screen scratches probability
+            HasScreenScratches = condition switch
+            {
+                DeviceCondition.New  => false,
+                DeviceCondition.Good => Random.value < 0.1f,
+                DeviceCondition.Fair => Random.value < 0.4f,
+                DeviceCondition.Poor => Random.value < 0.75f,
+                _ => false
+            };
+
+            // Hidden defect chance — influenced by brand defect rate
+            float brandDefectRate = data.Brand != null ? data.Brand.DefectRate : 0.1f;
             if (condition != DeviceCondition.New)
             {
-                float defectChance = condition switch
+                float baseChance = condition switch
                 {
-                    DeviceCondition.Good => 0.05f,  // 5% chance
-                    DeviceCondition.Fair => 0.15f,   // 15% chance
-                    DeviceCondition.Poor => 0.30f,   // 30% chance
+                    DeviceCondition.Good => 0.05f,
+                    DeviceCondition.Fair => 0.15f,
+                    DeviceCondition.Poor => 0.30f,
                     _ => 0f
                 };
-                HasHiddenDefect = Random.value < defectChance;
+                // Brand with high defect rate increases chance
+                float adjustedChance = baseChance * (0.5f + brandDefectRate);
+                HasHiddenDefect = Random.value < adjustedChance;
             }
         }
 
-        /// <summary>
-        /// Parameterless constructor for serialization. Don't use directly.
-        /// </summary>
+        /// <summary>Parameterless constructor for serialization.</summary>
         public DeviceInstance()
         {
             InstanceId = _nextId++;
+            BatteryHealth = 100f;
+            SerialNumber = "UNKNOWN";
         }
 
         // ── Value Calculation ──────────────────────────────────────────────
 
         /// <summary>
-        /// Calculate the current market value of this device based on age and condition.
-        /// This represents what a "fair" customer would consider a reasonable price.
+        /// Calculate current market value including brand premium, specs, and condition.
         /// 
-        /// Formula:
-        ///   baseValue = wholesale - (depreciation × daysOwned)
-        ///   currentValue = baseValue × conditionMultiplier
-        ///   floor = wholesale × minValueFloor (prevents $0 devices)
+        /// Enhanced Formula:
+        ///   effectiveWholesale = BaseWholesale × BrandPremium
+        ///   depreciated = effectiveWholesale - (EffectiveDepreciation × daysOwned)
+        ///   conditioned = depreciated × conditionMultiplier
+        ///   batteryAdjusted = conditioned × batteryHealthFactor
+        ///   colorAdjusted = batteryAdjusted × colorPriceMultiplier
+        ///   floor = effectiveWholesale × minValueFloor
+        ///   value = max(colorAdjusted, floor)
         /// </summary>
-        /// <param name="currentDay">The current in-game day number</param>
-        /// <returns>Current market value in dollars</returns>
         public float GetCurrentValue(int currentDay)
         {
+            float effectiveWholesale = Data.GetEffectiveWholesalePrice();
+            float effectiveDepreciation = Data.GetEffectiveDepreciation();
             float daysOwned = Mathf.Max(0, currentDay - DayPurchased);
-            float depreciated = Data.BaseWholesalePrice - (Data.DepreciationPerDay * daysOwned);
+
+            // Depreciate
+            float depreciated = effectiveWholesale - (effectiveDepreciation * daysOwned);
+
+            // Apply condition
             float condMultiplier = Data.GetConditionMultiplier(Condition);
             float value = depreciated * condMultiplier;
 
-            // Apply floor — device never drops below X% of wholesale
-            float floor = Data.BaseWholesalePrice * Data.MinValueFloor;
+            // Battery health adjustment (poor battery = lower value)
+            float batteryFactor = 0.7f + (0.3f * (BatteryHealth / 100f));
+            value *= batteryFactor;
+
+            // Color premium
+            float colorMult = GetSelectedColorPriceMultiplier();
+            value *= colorMult;
+
+            // Screen scratches penalty
+            if (HasScreenScratches)
+                value *= 0.92f;
+
+            // Refurbished slight discount
+            if (IsRefurbished)
+                value *= 0.95f;
+
+            // Floor
+            float floor = effectiveWholesale * Data.MinValueFloor;
             value = Mathf.Max(value, floor);
 
-            // Hidden defects reduce value by 25% (if known)
-            // In V1, this is always hidden from player but affects WTP of tech-savvy customers
-            // We don't apply it here — TransactionEngine handles it
-
-            return Mathf.Round(value * 100f) / 100f; // Round to cents
+            return Mathf.Round(value * 100f) / 100f;
         }
 
-        /// <summary>
-        /// Calculate the profit/loss if sold at the player's set price.
-        /// Negative = selling at a loss.
-        /// </summary>
-        public float GetExpectedProfit()
+        // ── Color Helpers ──────────────────────────────────────────────────
+
+        /// <summary>Get the selected color variant, or null if invalid.</summary>
+        public PhoneColorVariant GetSelectedColor()
         {
-            return PlayerSetPrice - PurchasePrice;
+            if (Data.AvailableColors == null || Data.AvailableColors.Length == 0)
+                return null;
+            int idx = Mathf.Clamp(SelectedColorIndex, 0, Data.AvailableColors.Length - 1);
+            return Data.AvailableColors[idx];
         }
 
-        /// <summary>
-        /// Calculate the profit margin percentage at the player's set price.
-        /// </summary>
+        /// <summary>Get the color name for display.</summary>
+        public string GetColorName()
+        {
+            var color = GetSelectedColor();
+            return color != null ? color.ColorName : "Standard";
+        }
+
+        /// <summary>Get the price multiplier from the selected color.</summary>
+        public float GetSelectedColorPriceMultiplier()
+        {
+            var color = GetSelectedColor();
+            return color != null ? color.PriceMultiplier : 1f;
+        }
+
+        // ── Spec Summary Helpers ───────────────────────────────────────────
+
+        /// <summary>Get a one-line spec summary for UI.</summary>
+        public string GetSpecSummary()
+        {
+            if (Data.Category != DeviceCategory.Phone)
+                return Data.Description;
+
+            var s = Data.Specs;
+            return $"{s.RAM_GB}GB RAM | {s.Storage_GB}GB | {s.MainCamera_MP}MP | {s.BatteryCapacity_mAh}mAh";
+        }
+
+        /// <summary>Get the brand name for display.</summary>
+        public string GetBrandName()
+        {
+            return Data.Brand != null ? Data.Brand.BrandName : "Unbranded";
+        }
+
+        /// <summary>Get full display name: Brand + DeviceName.</summary>
+        public string GetFullName()
+        {
+            string brand = GetBrandName();
+            return brand != "Unbranded" ? $"{brand} {Data.DeviceName}" : Data.DeviceName;
+        }
+
+        // ── Profit / Margin ────────────────────────────────────────────────
+
+        public float GetExpectedProfit() => PlayerSetPrice - PurchasePrice;
+
         public float GetExpectedMarginPercent()
         {
             if (PurchasePrice <= 0f) return 0f;
             return ((PlayerSetPrice - PurchasePrice) / PurchasePrice) * 100f;
         }
 
-        /// <summary>
-        /// How many days this device has been in inventory.
-        /// </summary>
-        public int GetDaysInStock(int currentDay)
-        {
-            return Mathf.Max(0, currentDay - DayPurchased);
-        }
+        public int GetDaysInStock(int currentDay) => Mathf.Max(0, currentDay - DayPurchased);
 
-        /// <summary>
-        /// Get a color-coded condition label for UI display.
-        /// </summary>
+        // ── Condition Labels ───────────────────────────────────────────────
+
         public string GetConditionLabel()
         {
             return Condition switch
@@ -155,9 +252,6 @@ namespace DeviceEmpire.Inventory
             };
         }
 
-        /// <summary>
-        /// Get a plain condition label (no rich text).
-        /// </summary>
         public string GetConditionLabelPlain()
         {
             return Condition switch
@@ -170,10 +264,33 @@ namespace DeviceEmpire.Inventory
             };
         }
 
+        public string GetBatteryHealthLabel()
+        {
+            if (BatteryHealth >= 90f) return "<color=#4CAF50>Excellent</color>";
+            if (BatteryHealth >= 75f) return "<color=#8BC34A>Good</color>";
+            if (BatteryHealth >= 60f) return "<color=#FFC107>Fair</color>";
+            return "<color=#FF5722>Degraded</color>";
+        }
+
+        // ── Serial Number ──────────────────────────────────────────────────
+
+        private static string GenerateSerial(DeviceData data)
+        {
+            string prefix = data.Category switch
+            {
+                DeviceCategory.Phone => "PH",
+                DeviceCategory.Laptop => "LP",
+                DeviceCategory.Tablet => "TB",
+                DeviceCategory.Accessory => "AC",
+                _ => "XX"
+            };
+            return $"{prefix}-{Random.Range(100000, 999999)}-{Random.Range(1000, 9999)}";
+        }
+
         public override string ToString()
         {
-            return $"[Device #{InstanceId}] {Data.DeviceName} ({GetConditionLabelPlain()}) " +
-                   $"Bought: ${PurchasePrice:F2} on Day {DayPurchased}";
+            return $"[#{InstanceId}] {GetFullName()} ({GetConditionLabelPlain()}, {GetColorName()}) " +
+                   $"Battery: {BatteryHealth:F0}% | Cost: ${PurchasePrice:F2} | SN: {SerialNumber}";
         }
     }
 }

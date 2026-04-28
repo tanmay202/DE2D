@@ -1,8 +1,7 @@
 // ============================================================================
-// SupplierPanel.cs — V1 Hardcoded Supplier System
-// Responsibility: Let the player "buy" devices from a hardcoded supplier list.
-//                 No supplier simulation yet — just enough to stock inventory.
-//                 Replaced in V2 with a proper SupplierSystem with tiers/trust.
+// SupplierPanel.cs — V1 Supplier System (Phone-Enhanced)
+// Responsibility: Let the player buy devices with full phone spec visibility.
+//                 Shows brand, key specs, color variants, and condition.
 // Dependencies: GameManager, DeviceData, DeviceInstance, InventoryManager
 // Scene Placement: UI/SupplierPanel (Canvas panel, toggled on/off)
 // ============================================================================
@@ -17,63 +16,37 @@ using DeviceEmpire.Inventory;
 namespace DeviceEmpire.UI
 {
     /// <summary>
-    /// V1 supplier interface. Displays a list of available devices at various conditions.
-    /// Player clicks to buy — device is added to inventory, cash is deducted.
-    /// 
-    /// In V2, this is replaced by:
-    /// - Multiple supplier tiers (street vendor, wholesaler, distributor)
-    /// - Trust/relationship system
-    /// - Bulk order discounts
-    /// - Supply availability fluctuation
+    /// V1 supplier interface — phone-enhanced.
+    /// Shows brand, key specs, color variants, and price per condition.
     /// </summary>
     public class SupplierPanel : MonoBehaviour
     {
         // ── Configuration ──────────────────────────────────────────────────
         [Header("Available Devices")]
-        [Tooltip("Drag all DeviceData ScriptableObjects the supplier offers here")]
+        [Tooltip("Drag all DeviceData ScriptableObjects the supplier offers")]
         [SerializeField] private DeviceData[] availableDevices;
 
         [Header("UI References")]
-        [Tooltip("Parent transform for supplier item buttons")]
         [SerializeField] private Transform itemListContainer;
-
-        [Tooltip("Prefab for a single supplier item row")]
         [SerializeField] private GameObject supplierItemPrefab;
-
-        [Tooltip("Close button for the supplier panel")]
         [SerializeField] private Button closeButton;
-
-        [Tooltip("Header text showing supplier info")]
         [SerializeField] private TextMeshProUGUI headerText;
-
-        [Tooltip("Player cash display in supplier panel")]
         [SerializeField] private TextMeshProUGUI cashDisplay;
-
-        [Tooltip("Inventory slots remaining display")]
         [SerializeField] private TextMeshProUGUI slotsDisplay;
 
         // ── Events ─────────────────────────────────────────────────────────
-        /// <summary>Fired when a device is purchased. Param = the purchased device instance.</summary>
         public event Action<DeviceInstance> OnDevicePurchased;
-
-        /// <summary>Fired when purchase fails (no cash or no space).</summary>
         public event Action<string> OnPurchaseFailed;
 
         // ── Lifecycle ──────────────────────────────────────────────────────
         private void Start()
         {
-            // Subscribe to cash changes to update display
             if (GameManager.Instance != null)
-            {
                 GameManager.Instance.OnCashChanged += UpdateCashDisplay;
-            }
 
             if (closeButton != null)
-            {
                 closeButton.onClick.AddListener(ClosePanel);
-            }
 
-            // Build the supplier item list
             PopulateSupplierList();
             UpdateDisplays();
         }
@@ -86,20 +59,15 @@ namespace DeviceEmpire.UI
         private void OnDestroy()
         {
             if (GameManager.Instance != null)
-            {
                 GameManager.Instance.OnCashChanged -= UpdateCashDisplay;
-            }
         }
 
         // ── Public API ─────────────────────────────────────────────────────
 
         /// <summary>
-        /// Buy a device at a specific condition. Called by supplier item buttons.
+        /// Buy a device at a specific condition and color.
         /// </summary>
-        /// <param name="data">The DeviceData type to buy</param>
-        /// <param name="condition">The condition to buy at</param>
-        /// <returns>True if purchase succeeded</returns>
-        public bool BuyDevice(DeviceData data, DeviceCondition condition)
+        public bool BuyDevice(DeviceData data, DeviceCondition condition, int colorIndex = 0)
         {
             if (data == null)
             {
@@ -107,8 +75,15 @@ namespace DeviceEmpire.UI
                 return false;
             }
 
-            // Calculate cost
+            // Calculate cost (includes brand premium + color premium)
             float cost = data.GetWholesalePrice(condition);
+
+            // Apply color premium if applicable
+            if (data.AvailableColors != null && colorIndex >= 0 && colorIndex < data.AvailableColors.Length)
+            {
+                cost *= data.AvailableColors[colorIndex].PriceMultiplier;
+                cost = Mathf.Round(cost * 100f) / 100f;
+            }
 
             // Check cash
             if (!GameManager.Instance.CanAfford(cost))
@@ -135,103 +110,117 @@ namespace DeviceEmpire.UI
                 return false;
             }
 
-            // Create device instance
+            // Create device instance with color selection
             int currentDay = GameManager.Instance.Clock?.CurrentDay ?? 1;
-            var instance = new DeviceInstance(data, condition, cost, currentDay);
+            var instance = new DeviceInstance(data, condition, cost, currentDay, colorIndex);
 
             // Add to inventory
             if (!GameManager.Instance.Inventory.AddDevice(instance))
             {
-                // Refund if inventory add fails
                 GameManager.Instance.AddCash(cost);
                 OnPurchaseFailed?.Invoke("Failed to add device to inventory.");
                 return false;
             }
 
-            Debug.Log($"[SupplierPanel] Purchased: {data.DeviceName} ({condition}) for ${cost:F2}");
+            string brandName = data.Brand != null ? data.Brand.BrandName : "";
+            string colorName = instance.GetColorName();
+            Debug.Log($"[SupplierPanel] Purchased: {brandName} {data.DeviceName} ({condition}, {colorName}) for ${cost:F2}");
 
             OnDevicePurchased?.Invoke(instance);
             UpdateDisplays();
             return true;
         }
 
-        /// <summary>Toggle panel visibility.</summary>
-        public void TogglePanel()
-        {
-            gameObject.SetActive(!gameObject.activeSelf);
-        }
-
-        /// <summary>Open the supplier panel.</summary>
-        public void OpenPanel()
-        {
-            gameObject.SetActive(true);
-            UpdateDisplays();
-        }
-
-        /// <summary>Close the supplier panel.</summary>
-        public void ClosePanel()
-        {
-            gameObject.SetActive(false);
-        }
+        public void TogglePanel() => gameObject.SetActive(!gameObject.activeSelf);
+        public void OpenPanel() { gameObject.SetActive(true); UpdateDisplays(); }
+        public void ClosePanel() => gameObject.SetActive(false);
 
         // ── Internal ───────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Build the supplier item list UI. Called once at Start.
-        /// Creates one row per device × condition combination.
-        /// </summary>
         private void PopulateSupplierList()
         {
             if (itemListContainer == null || supplierItemPrefab == null)
             {
-                Debug.LogWarning("[SupplierPanel] Missing UI references. Assign itemListContainer and supplierItemPrefab.");
+                Debug.LogWarning("[SupplierPanel] Missing UI references.");
                 return;
             }
 
-            // Clear existing children
             foreach (Transform child in itemListContainer)
-            {
                 Destroy(child.gameObject);
-            }
 
-            // Create a row for each device × condition
             DeviceCondition[] conditions = { DeviceCondition.New, DeviceCondition.Good, DeviceCondition.Fair, DeviceCondition.Poor };
 
             foreach (var device in availableDevices)
             {
                 foreach (var condition in conditions)
                 {
-                    CreateSupplierItem(device, condition);
+                    // For V1, create one item per condition with default color (index 0)
+                    CreateSupplierItem(device, condition, 0);
                 }
             }
         }
 
-        /// <summary>
-        /// Create a single supplier item row in the UI.
-        /// </summary>
-        private void CreateSupplierItem(DeviceData data, DeviceCondition condition)
+        private void CreateSupplierItem(DeviceData data, DeviceCondition condition, int colorIndex)
         {
             var item = Instantiate(supplierItemPrefab, itemListContainer);
             item.name = $"Supplier_{data.DeviceName}_{condition}";
 
-            // Try to find and configure UI elements in the prefab
+            // Find UI elements
             var nameText = item.transform.Find("DeviceName")?.GetComponent<TextMeshProUGUI>();
             var condText = item.transform.Find("Condition")?.GetComponent<TextMeshProUGUI>();
             var priceText = item.transform.Find("Price")?.GetComponent<TextMeshProUGUI>();
             var buyButton = item.transform.Find("BuyButton")?.GetComponent<Button>();
 
+            // New phone-specific fields (optional in prefab — gracefully skip if missing)
+            var brandText = item.transform.Find("Brand")?.GetComponent<TextMeshProUGUI>();
+            var specsText = item.transform.Find("Specs")?.GetComponent<TextMeshProUGUI>();
+            var tierText = item.transform.Find("Tier")?.GetComponent<TextMeshProUGUI>();
+            var brandIcon = item.transform.Find("BrandIcon")?.GetComponent<Image>();
+
             float cost = data.GetWholesalePrice(condition);
 
-            if (nameText != null) nameText.text = data.DeviceName;
-            if (condText != null) condText.text = condition.ToString();
-            if (priceText != null) priceText.text = $"${cost:F2}";
+            // Apply color premium
+            if (data.AvailableColors != null && colorIndex >= 0 && colorIndex < data.AvailableColors.Length)
+                cost = Mathf.Round(cost * data.AvailableColors[colorIndex].PriceMultiplier * 100f) / 100f;
 
+            // Populate text fields
+            if (nameText != null)
+            {
+                string brandPrefix = data.Brand != null ? $"{data.Brand.BrandName} " : "";
+                nameText.text = $"{brandPrefix}{data.DeviceName}";
+            }
+
+            if (condText != null)
+                condText.text = condition.ToString();
+
+            if (priceText != null)
+                priceText.text = $"${cost:F2}";
+
+            // Phone-specific fields
+            if (brandText != null && data.Brand != null)
+            {
+                brandText.text = data.Brand.GetTierLabel();
+            }
+
+            if (specsText != null && data.Category == DeviceCategory.Phone)
+            {
+                var s = data.Specs;
+                specsText.text = $"{s.RAM_GB}GB | {s.Storage_GB}GB | {s.MainCamera_MP}MP | {s.BatteryCapacity_mAh}mAh";
+            }
+
+            if (tierText != null)
+                tierText.text = data.GetSpecTier();
+
+            if (brandIcon != null && data.Brand?.BrandLogo != null)
+                brandIcon.sprite = data.Brand.BrandLogo;
+
+            // Buy button
             if (buyButton != null)
             {
-                // Capture locals for the lambda
                 var deviceData = data;
                 var deviceCondition = condition;
-                buyButton.onClick.AddListener(() => BuyDevice(deviceData, deviceCondition));
+                var cIdx = colorIndex;
+                buyButton.onClick.AddListener(() => BuyDevice(deviceData, deviceCondition, cIdx));
             }
         }
 
@@ -249,25 +238,15 @@ namespace DeviceEmpire.UI
             }
 
             if (headerText != null)
-            {
-                headerText.text = "Street Supplier"; // V1 — single supplier
-            }
+                headerText.text = "Street Supplier";
         }
 
         private void UpdateCashDisplay(float cash)
         {
             if (cashDisplay != null)
-            {
                 cashDisplay.text = $"Cash: ${cash:F2}";
-            }
         }
 
-        // ── Condition Cost Factor (V1 simple) ──────────────────────────────
-
-        /// <summary>
-        /// Get the cost multiplier for a given condition. Used internally.
-        /// Moved to DeviceData.GetWholesalePrice() for cleaner access.
-        /// </summary>
         public static float GetConditionCostFactor(DeviceCondition condition)
         {
             return condition switch

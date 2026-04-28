@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fe3b8cd375bbdd41ab19e78c5f35e5c, type: 3}
+  m_Name: Phone_mapple_Mapple_One_14
+  m_EditorClassIdentifier: 
+  DeviceName: Mapple One 14
+  Category: 0
+  Icon: {fileID: 0}
+  Description: A standard electronic device.
+  ModelYear: 2022
+  Generation: 
+  Brand: {fileID: 11400000, guid: 39401d3e6a82a5c4893f68328e6826f3, type: 2}
+  Specs:
+    ProcessorName: Generic Quad-Core
+    ProcessorBrand: 1
+    PerformanceScore: 80
+    BenchmarkScore: 300
+    RAM_GB: 6
+    RAMType: 2
+    Storage_GB: 128
+    StorageType: 0
+    HasExpandableStorage: 0
+    MaxExpandableStorage_GB: 0
+    DisplaySize_inches: 6.1
+    DisplayType: 2
+    Resolution: 3
+    RefreshRate_Hz: 60
+    PeakBrightness_nits: 500
+    HasHDR: 0
+    HasAlwaysOnDisplay: 0
+    ScreenProtection: 0
+    MainCamera_MP: 12
+    RearCameraCount: 1
+    HasUltrawide: 0
+    HasTelephoto: 0
+    MaxOpticalZoom: 1
+    FrontCamera_MP: 8
+    CanRecord4K: 0
+    HasOIS: 0
+    CameraQualityScore: 40
+    BatteryCapacity_mAh: 3279
+    ScreenOnTime_hours: 6
+    FastChargeWatts: 0
+    HasWirelessCharging: 0
+    WirelessChargeWatts: 0
+    HasReverseCharging: 0
+    Has5G: 1
+    WiFiStandard: 1
+    BluetoothVersion: 1
+    HasNFC: 1
+    HasHeadphoneJack: 1
+    USBType: 0
+    SimSlots: 1
+    HasESIM: 0
+    HasIRBlaster: 0
+    Weight_grams: 175
+    IPRating: 0
+    BackMaterial: 3
+    FrameMaterial: 0
+    HasFingerprint: 1
+    FingerprintType: 1
+    HasFaceUnlock: 0
+    HasStereoSpeakers: 0
+    OperatingSystem: 0
+    OSVersion: 13
+    YearsOfUpdates: 2
+    YearsOfSecurityPatches: 3
+  AvailableColors:
+  - ColorName: Phantom Black
+    DisplayColor: {r: 0, g: 0, b: 0, a: 1}
+    IsSpecialEdition: 0
+    PriceMultiplier: 1
+    Popularity: 0.5
+  - ColorName: Glacier White
+    DisplayColor: {r: 1, g: 1, b: 1, a: 1}
+    IsSpecialEdition: 0
+    PriceMultiplier: 1
+    Popularity: 0.5
+  BaseWholesalePrice: 500
+  SuggestedRetailPrice: 799
+  DepreciationPerDay: 2.5
+  MinValueFloor: 0.1
+  ConditionMultiplier_New: 1
+  ConditionMultiplier_Good: 0.85
+  ConditionMultiplier_Fair: 0.65
+  ConditionMultiplier_Poor: 0.4

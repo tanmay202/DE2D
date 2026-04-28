@@ -189,7 +189,7 @@ namespace DeviceEmpire.UI
             var customer = GameManager.Instance?.Customers?.ActiveCustomer;
             if (customer != null)
             {
-                customerStatusText.text = $"{customer.GetMoodEmoji()} {customer.GetDisplayName()} wants: {customer.WantedCategory}";
+                customerStatusText.text = $"{customer.GetMoodEmoji()} {customer.GetDisplayName()} — {customer.GetWantsSummary()}";
             }
             else
             {

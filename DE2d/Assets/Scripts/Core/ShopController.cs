@@ -209,7 +209,7 @@ namespace DeviceEmpire.Core
             Debug.Log($"[ShopController] Submitting offer: ${_currentAskingPrice:F2} " +
                       $"(Customer WTP: ${wtp:F2}, ratio: {_currentAskingPrice / wtp:F2})");
 
-            _lastResult = TransactionEngine.Evaluate(_currentAskingPrice, wtp, customer);
+            _lastResult = TransactionEngine.Evaluate(_currentAskingPrice, wtp, customer, _selectedDevice);
             OnTransactionResolved?.Invoke(_lastResult);
 
             // Handle outcome
