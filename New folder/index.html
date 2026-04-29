@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Device Empire 2D</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>Device Empire 2D</h1>
+          <p id="dayLabel">Day 1 - Morning</p>
+        </div>
+        <div class="stats-grid" aria-label="Core shop stats">
+          <div class="stat"><span>Money</span><strong id="moneyStat">$0</strong></div>
+          <div class="stat"><span>Reputation</span><strong id="repStat">0</strong></div>
+          <div class="stat"><span>Popularity</span><strong id="popularityStat">0</strong></div>
+          <div class="stat"><span>Level</span><strong id="levelStat">1</strong></div>
+        </div>
+      </header>
+
+      <main class="game-layout">
+        <section class="panel shop-panel">
+          <div class="panel-header">
+            <h2>Shop Floor</h2>
+            <button id="nextDayBtn" class="primary-action">Run Day</button>
+          </div>
+          <div class="shop-floor">
+            <div>
+              <h3>Customer Queue</h3>
+              <div id="customerQueue" class="queue-list"></div>
+            </div>
+            <div>
+              <h3>Today</h3>
+              <div id="dailyStats" class="daily-stats"></div>
+            </div>
+          </div>
+          <div class="log-wrap">
+            <h3>Event Log</h3>
+            <div id="eventLog" class="event-log" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Inventory</h2>
+            <button id="restockAllBtn">Restock Basics</button>
+          </div>
+          <div id="inventoryList" class="inventory-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Suppliers</h2>
+            <span id="trendBadge" class="badge">Trend: none</span>
+          </div>
+          <div id="supplierList" class="supplier-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Upgrades</h2>
+            <span id="shopTierBadge" class="badge">Starter Shop</span>
+          </div>
+          <div id="upgradeList" class="upgrade-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Marketing</h2>
+            <span class="badge">Risk / Reward</span>
+          </div>
+          <div id="marketingList" class="marketing-list"></div>
+        </section>
+
+        <section class="panel company-panel">
+          <div class="panel-header">
+            <h2>Own Company</h2>
+            <span id="companyStatus" class="badge">Locked</span>
+          </div>
+          <div id="companyPanel"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Competitors</h2>
+            <span class="badge">Market AI</span>
+          </div>
+          <div id="competitorList" class="competitor-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>
