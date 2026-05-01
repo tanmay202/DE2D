@@ -10,35 +10,35 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fe3b8cd375bbdd41ab19e78c5f35e5c, type: 3}
-  m_Name: Phone_tamsung_Nebula_S22
+  m_Name: Mapple One 14
   m_EditorClassIdentifier: 
-  DeviceName: Nebula S22
+  DeviceName: Mapple One 14
   Category: 0
   Icon: {fileID: 0}
   Description: A standard electronic device.
   ModelYear: 2022
   Generation: 
-  Brand: {fileID: 11400000, guid: 12264f63892ef784d8648a07d3ea7191, type: 2}
+  Brand: {fileID: 11400000, guid: 39401d3e6a82a5c4893f68328e6826f3, type: 2}
   Specs:
     ProcessorName: Generic Quad-Core
     ProcessorBrand: 1
     PerformanceScore: 80
     BenchmarkScore: 300
-    RAM_GB: 8
+    RAM_GB: 6
     RAMType: 2
     Storage_GB: 128
     StorageType: 0
     HasExpandableStorage: 0
     MaxExpandableStorage_GB: 0
     DisplaySize_inches: 6.1
-    DisplayType: 3
+    DisplayType: 2
     Resolution: 3
-    RefreshRate_Hz: 120
+    RefreshRate_Hz: 60
     PeakBrightness_nits: 500
     HasHDR: 0
     HasAlwaysOnDisplay: 0
     ScreenProtection: 0
-    MainCamera_MP: 50
+    MainCamera_MP: 12
     RearCameraCount: 1
     HasUltrawide: 0
     HasTelephoto: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
     CanRecord4K: 0
     HasOIS: 0
     CameraQualityScore: 40
-    BatteryCapacity_mAh: 3700
+    BatteryCapacity_mAh: 3279
     ScreenOnTime_hours: 6
     FastChargeWatts: 0
     HasWirelessCharging: 0
@@ -85,9 +85,9 @@ MonoBehaviour:
     IsSpecialEdition: 0
     PriceMultiplier: 1
     Popularity: 0.5
-  BaseWholesalePrice: 450
-  SuggestedRetailPrice: 699
-  DepreciationPerDay: 2.25
+  BaseWholesalePrice: 500
+  SuggestedRetailPrice: 799
+  DepreciationPerDay: 2.5
   MinValueFloor: 0.1
   ConditionMultiplier_New: 1
   ConditionMultiplier_Good: 0.85

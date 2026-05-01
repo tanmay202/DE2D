@@ -10,23 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fe3b8cd375bbdd41ab19e78c5f35e5c, type: 3}
-  m_Name: Phone_mapple_Mapple_One_16_Pro
+  m_Name: Mapple One 14 Pro
   m_EditorClassIdentifier: 
-  DeviceName: Mapple One 16 Pro
+  DeviceName: Mapple One 14 Pro
   Category: 0
   Icon: {fileID: 0}
   Description: A standard electronic device.
-  ModelYear: 2024
+  ModelYear: 2022
   Generation: 
   Brand: {fileID: 11400000, guid: 39401d3e6a82a5c4893f68328e6826f3, type: 2}
   Specs:
     ProcessorName: Generic Quad-Core
     ProcessorBrand: 1
-    PerformanceScore: 95
+    PerformanceScore: 85
     BenchmarkScore: 300
-    RAM_GB: 8
+    RAM_GB: 6
     RAMType: 2
-    Storage_GB: 256
+    Storage_GB: 128
     StorageType: 0
     HasExpandableStorage: 0
     MaxExpandableStorage_GB: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
     CanRecord4K: 0
     HasOIS: 0
     CameraQualityScore: 40
-    BatteryCapacity_mAh: 3500
+    BatteryCapacity_mAh: 3200
     ScreenOnTime_hours: 6
     FastChargeWatts: 0
     HasWirelessCharging: 0
@@ -85,9 +85,9 @@ MonoBehaviour:
     IsSpecialEdition: 0
     PriceMultiplier: 1
     Popularity: 0.5
-  BaseWholesalePrice: 750
-  SuggestedRetailPrice: 1099
-  DepreciationPerDay: 3.75
+  BaseWholesalePrice: 650
+  SuggestedRetailPrice: 999
+  DepreciationPerDay: 3.25
   MinValueFloor: 0.1
   ConditionMultiplier_New: 1
   ConditionMultiplier_Good: 0.85

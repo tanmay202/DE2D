@@ -17,7 +17,7 @@ namespace DeviceEmpire.Inventory
     /// <summary>
     /// ScriptableObject defining a device archetype with full phone specifications.
     /// Each physical device in the game references one of these for its base stats.
-    /// 
+    ///
     /// ARCHITECTURE: Phone-first design. The PhoneSpecs section is the detailed
     /// specification block. When Laptop/Tablet are added later, they'll get their
     /// own spec blocks (LaptopSpecs, TabletSpecs) and share the common fields.
@@ -91,10 +91,14 @@ namespace DeviceEmpire.Inventory
 
         // ── Condition Multipliers ──────────────────────────────────────────
         [Header("Condition Value Multipliers")]
-        [Range(0.5f, 1.5f)] public float ConditionMultiplier_New = 1.0f;
-        [Range(0.3f, 1.2f)] public float ConditionMultiplier_Good = 0.85f;
-        [Range(0.2f, 1.0f)] public float ConditionMultiplier_Fair = 0.65f;
-        [Range(0.1f, 0.8f)] public float ConditionMultiplier_Poor = 0.40f;
+        [Range(0.5f, 1.5f)]
+        public float ConditionMultiplier_New = 1.0f;
+        [Range(0.3f, 1.2f)]
+        public float ConditionMultiplier_Good = 0.85f;
+        [Range(0.2f, 1.0f)]
+        public float ConditionMultiplier_Fair = 0.65f;
+        [Range(0.1f, 0.8f)]
+        public float ConditionMultiplier_Poor = 0.40f;
 
         // ═══════════════════════════════════════════════════════════════════
         // COMPUTED PROPERTIES
@@ -167,19 +171,23 @@ namespace DeviceEmpire.Inventory
 
             // RAM (weight: 15) — 2GB = 10, 4GB = 30, 8GB = 60, 12GB = 80, 16GB+ = 95
             float ramScore = Mathf.Clamp01((Specs.RAM_GB - 2f) / 14f) * 100f;
-            score += ramScore * 15f; totalWeight += 15f;
+            score += ramScore * 15f;
+            totalWeight += 15f;
 
             // Storage (weight: 12) — 16GB = 10, 64GB = 40, 128GB = 60, 256GB = 80, 512GB+ = 95
             float storageScore = Mathf.Clamp01((Specs.Storage_GB - 16f) / 496f) * 100f;
-            score += storageScore * 12f; totalWeight += 12f;
+            score += storageScore * 12f;
+            totalWeight += 12f;
 
             // Battery (weight: 12) — 2000 = 20, 3000 = 40, 4500 = 65, 5000 = 80, 6000+ = 95
             float batteryScore = Mathf.Clamp01((Specs.BatteryCapacity_mAh - 2000f) / 4000f) * 100f;
-            score += batteryScore * 12f; totalWeight += 12f;
+            score += batteryScore * 12f;
+            totalWeight += 12f;
 
             // Display size (weight: 8) — 5.0 = 30, 6.0 = 50, 6.5 = 70, 6.8+ = 85
             float displayScore = Mathf.Clamp01((Specs.DisplaySize_inches - 5f) / 2f) * 100f;
-            score += displayScore * 8f; totalWeight += 8f;
+            score += displayScore * 8f;
+            totalWeight += 8f;
 
             // Display type (weight: 8)
             float displayTypeScore = Specs.DisplayType switch
@@ -192,29 +200,36 @@ namespace DeviceEmpire.Inventory
                 DisplayType.LTPO_AMOLED => 100f,
                 _ => 30f
             };
-            score += displayTypeScore * 8f; totalWeight += 8f;
+            score += displayTypeScore * 8f;
+            totalWeight += 8f;
 
             // Refresh rate (weight: 7) — 60Hz = 30, 90Hz = 55, 120Hz = 80, 144Hz = 95
             float refreshScore = Mathf.Clamp01((Specs.RefreshRate_Hz - 60f) / 84f) * 100f;
-            score += refreshScore * 7f; totalWeight += 7f;
+            score += refreshScore * 7f;
+            totalWeight += 7f;
 
             // Camera (weight: 10) — 8MP = 15, 12MP = 30, 48MP = 60, 108MP = 85, 200MP = 100
             float cameraScore = Mathf.Clamp01((Specs.MainCamera_MP - 8f) / 192f) * 100f;
-            score += cameraScore * 10f; totalWeight += 10f;
+            score += cameraScore * 10f;
+            totalWeight += 10f;
 
             // Performance (weight: 15) — direct 0-100 mapping
-            score += Specs.PerformanceScore * 15f; totalWeight += 15f;
+            score += Specs.PerformanceScore * 15f;
+            totalWeight += 15f;
 
             // 5G support (weight: 5)
             float connectivityScore = Specs.Has5G ? 90f : 30f;
-            score += connectivityScore * 5f; totalWeight += 5f;
+            score += connectivityScore * 5f;
+            totalWeight += 5f;
 
             // Fast charging (weight: 5) — 10W = 20, 25W = 45, 45W = 70, 65W = 85, 120W+ = 100
             float chargeScore = Mathf.Clamp01((Specs.FastChargeWatts - 10f) / 110f) * 100f;
-            score += chargeScore * 5f; totalWeight += 5f;
+            score += chargeScore * 5f;
+            totalWeight += 5f;
 
             // NFC (weight: 3)
-            score += (Specs.HasNFC ? 80f : 10f) * 3f; totalWeight += 3f;
+            score += (Specs.HasNFC ? 80f : 10f) * 3f;
+            totalWeight += 3f;
 
             return totalWeight > 0 ? score / totalWeight : 50f;
         }
@@ -243,12 +258,11 @@ namespace DeviceEmpire.Inventory
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // EDITOR VALIDATION
+        // EDITOR VALIDATION & AUTO-RENAMING
         // ═══════════════════════════════════════════════════════════════════
         private void OnValidate()
         {
             float effectiveWholesale = GetEffectiveWholesalePrice();
-
             if (SuggestedRetailPrice < effectiveWholesale)
             {
                 Debug.LogWarning($"[DeviceData] '{DeviceName}': SRP (${SuggestedRetailPrice}) " +
@@ -271,13 +285,37 @@ namespace DeviceEmpire.Inventory
             {
                 Debug.LogWarning($"[DeviceData] '{DeviceName}': No color variants defined!");
             }
+
+#if UNITY_EDITOR
+            // Automatically rename the ScriptableObject Asset file to match 'DeviceName'
+            if (!string.IsNullOrWhiteSpace(DeviceName))
+            {
+                // Clean the DeviceName of any characters that are illegal in file names
+                string safeFileName = string.Join("_", DeviceName.Split(System.IO.Path.GetInvalidFileNameChars()));
+
+                if (this.name != safeFileName)
+                {
+                    string assetPath = UnityEditor.AssetDatabase.GetAssetPath(this.GetInstanceID());
+                    if (!string.IsNullOrEmpty(assetPath))
+                    {
+                        // Use delayCall to avoid recursive/corrupted state errors during OnValidate serializations
+                        UnityEditor.EditorApplication.delayCall += () =>
+                        {
+                            if (this != null && this.name != safeFileName)
+                            {
+                                UnityEditor.AssetDatabase.RenameAsset(assetPath, safeFileName);
+                            }
+                        };
+                    }
+                }
+            }
+#endif
         }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
     // PHONE SPECIFICATIONS — Serializable data block
     // ═══════════════════════════════════════════════════════════════════════
-
     /// <summary>
     /// Complete phone hardware specifications. Embedded in DeviceData.
     /// Every field maps to a real phone spec that affects gameplay:
@@ -494,7 +532,6 @@ namespace DeviceEmpire.Inventory
     // ═══════════════════════════════════════════════════════════════════════
     // COLOR VARIANT — Serializable
     // ═══════════════════════════════════════════════════════════════════════
-
     /// <summary>
     /// A color variant of a phone model. Each device can come in multiple colors.
     /// Color can affect price slightly (special editions cost more).
@@ -523,7 +560,6 @@ namespace DeviceEmpire.Inventory
     // ═══════════════════════════════════════════════════════════════════════
     // ENUMS — Complete phone specification enums
     // ═══════════════════════════════════════════════════════════════════════
-
     public enum DeviceCategory { Phone, Laptop, Tablet, Accessory }
 
     public enum DeviceCondition
@@ -547,7 +583,6 @@ namespace DeviceEmpire.Inventory
     }
 
     public enum RAMType { LPDDR3, LPDDR4, LPDDR4X, LPDDR5, LPDDR5X }
-
     public enum StorageType { eMMC, UFS_2_1, UFS_3_0, UFS_3_1, UFS_4_0, NVMe }
 
     public enum DisplayType
@@ -597,7 +632,18 @@ namespace DeviceEmpire.Inventory
         IP69        // High-pressure wash (rare)
     }
 
-    public enum BackMaterial { Plastic, Polycarbonate, GlasticSamsung, Glass, Ceramic, Vegan_Leather, Metal, Kevlar }
+    public enum BackMaterial
+    {
+        Plastic,
+        Polycarbonate,
+        GlasticSamsung,
+        Glass,
+        Ceramic,
+        Vegan_Leather,
+        Metal,
+        Kevlar
+    }
+
     public enum FrameMaterial { Plastic, Aluminum, Stainless_Steel, Titanium }
 
     public enum FingerprintType

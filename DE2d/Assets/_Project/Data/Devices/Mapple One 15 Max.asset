@@ -10,27 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fe3b8cd375bbdd41ab19e78c5f35e5c, type: 3}
-  m_Name: Phone_mapple_Mapple_One_14_Pro
+  m_Name: Mapple One 15 Max
   m_EditorClassIdentifier: 
-  DeviceName: Mapple One 14 Pro
+  DeviceName: Mapple One 15 Max
   Category: 0
   Icon: {fileID: 0}
   Description: A standard electronic device.
-  ModelYear: 2022
+  ModelYear: 2023
   Generation: 
   Brand: {fileID: 11400000, guid: 39401d3e6a82a5c4893f68328e6826f3, type: 2}
   Specs:
     ProcessorName: Generic Quad-Core
     ProcessorBrand: 1
-    PerformanceScore: 85
+    PerformanceScore: 90
     BenchmarkScore: 300
-    RAM_GB: 6
+    RAM_GB: 8
     RAMType: 2
-    Storage_GB: 128
+    Storage_GB: 256
     StorageType: 0
     HasExpandableStorage: 0
     MaxExpandableStorage_GB: 0
-    DisplaySize_inches: 6.1
+    DisplaySize_inches: 6.7
     DisplayType: 5
     Resolution: 3
     RefreshRate_Hz: 120
@@ -47,7 +47,7 @@ MonoBehaviour:
     CanRecord4K: 0
     HasOIS: 0
     CameraQualityScore: 40
-    BatteryCapacity_mAh: 3200
+    BatteryCapacity_mAh: 4422
     ScreenOnTime_hours: 6
     FastChargeWatts: 0
     HasWirelessCharging: 0
@@ -85,9 +85,9 @@ MonoBehaviour:
     IsSpecialEdition: 0
     PriceMultiplier: 1
     Popularity: 0.5
-  BaseWholesalePrice: 650
-  SuggestedRetailPrice: 999
-  DepreciationPerDay: 3.25
+  BaseWholesalePrice: 800
+  SuggestedRetailPrice: 1199
+  DepreciationPerDay: 4
   MinValueFloor: 0.1
   ConditionMultiplier_New: 1
   ConditionMultiplier_Good: 0.85

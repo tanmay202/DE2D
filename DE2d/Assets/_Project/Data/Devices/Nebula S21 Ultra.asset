@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7fe3b8cd375bbdd41ab19e78c5f35e5c, type: 3}
-  m_Name: Phone_tamsung_Nebula_S21_Ultra
+  m_Name: Nebula S21 Ultra
   m_EditorClassIdentifier: 
   DeviceName: Nebula S21 Ultra
   Category: 0
